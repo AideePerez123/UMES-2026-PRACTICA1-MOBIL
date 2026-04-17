@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import type { Task, TaskFile } from "../../domain/task/task.types";
 import validateTaskTitle from "../../domain/task/task.validators";
@@ -9,7 +8,6 @@ export default function useTaskActions() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Cargar tareas al iniciar la app
   useEffect(() => {
     const loadTasks = async () => {
       try {
@@ -29,31 +27,34 @@ export default function useTaskActions() {
     loadTasks();
   }, []);
 
-  const addTask = async (title: string, file?: File) => {
-    if (!validateTaskTitle(title)) return;
-
-    let taskFile: TaskFile | undefined;
-
-    if (file) {
-      const arrayBuffer = await file.arrayBuffer();
-      taskFile = {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: arrayBuffer,
-      };
+  const addTask = async (title: string, fileData?: TaskFile) => {
+    const trimmedTitle = title.trim();
+    
+    if (!validateTaskTitle(title)) {
+      console.warn("validacion fallida");
+      alert("ingresee titulo de su tarea");
+      return;
     }
 
-    const newTask: Task = {
-      id: generateId(),
-      title,
-      completed: false,
-      addedAt: new Date(),
-      file: taskFile,
-    };
+    try {
+      const newTask: Task = {
+        id: generateId(),
+        title: trimmedTitle,
+        completed: false,
+        addedAt: new Date(),
+        file: fileData, 
+      };
 
-    await db.tasks.add(newTask);
-    setTasks((prev) => [...prev, newTask]);
+      console.log("Guardando tarea:", newTask);
+      const id = await db.tasks.add(newTask);
+      console.log("Tarea guardada exitosamente con ID:", id);
+      
+      setTasks((prev) => [...prev, newTask]);
+      alert("Tarea guardada correctamente");
+    } catch (error) {
+      console.error("Error al guardar la tarea:", error);
+      alert("Error al guardar la tarea. Intenta de nuevo.");
+    }
   };
 
   const onComplete = async (id: string) => {

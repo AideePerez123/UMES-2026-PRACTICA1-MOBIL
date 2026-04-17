@@ -1,34 +1,56 @@
 
 import { useState, useRef } from 'react'
+import type { TaskFile } from '../../../domain/task/task.types' 
 
 type Props = {
-  addTask: (title: string, file?: File) => void;
+  addTask: (title: string, fileData?: TaskFile) => void; 
 }
 
 export default function TaskForm({ addTask }: Props) {
   const [title, setTitle] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFileData, setSelectedFileData] = useState<TaskFile | null>(null);
+  const [fileName, setFileName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer(); 
+        setSelectedFileData({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: arrayBuffer,
+        });
+        setFileName(file.name);
+      } catch (error) {
+        console.error("Error al leer el archivo:", error);
+        alert("No se pudo leer el archivo. Puede que esté abierto en otro programa.");
+      }
+    }
+  };
 
   const addTaskSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await addTask(title, selectedFile || undefined);
+    
+    if (!title.trim()) {
+      alert("Por favor ingresa un título para la tarea");
+      return;
+    }
+    
+    await addTask(title, selectedFileData || undefined);
     setTitle('');
-    setSelectedFile(null);
+    setSelectedFileData(null);
+    setFileName('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  };
-
   const removeSelectedFile = () => {
-    setSelectedFile(null);
+    setSelectedFileData(null);
+    setFileName('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -75,13 +97,13 @@ export default function TaskForm({ addTask }: Props) {
           />
         </label>
 
-        {selectedFile && (
+        {selectedFileData && (
           <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded px-3 py-2">
             <span className="text-sm text-blue-700 truncate max-w-[200px]">
-              {selectedFile.name}
+              {fileName}
             </span>
             <span className="text-xs text-blue-500">
-              ({formatFileSize(selectedFile.size)})
+              ({formatFileSize(selectedFileData.size)})
             </span>
             <button
               type="button"

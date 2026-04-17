@@ -1,4 +1,3 @@
-
 import { selectCompletedTasks } from "../../application/task/useTaskSelectors"
 import useTaskActions from "../../application/task/useTaskActions"
 import TaskList from "../components/task/TaskList"
