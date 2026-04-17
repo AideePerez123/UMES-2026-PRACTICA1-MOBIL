@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "todo-pwa-app-1"
-  }
+    "default": "todo-pwa-app-1",
+    "production": "todo-pwa-app-1-f4013"
+  },
+  "targets": {},
+  "etags": {}
 }
